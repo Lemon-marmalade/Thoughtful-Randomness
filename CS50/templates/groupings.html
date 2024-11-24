@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+
+
+{% block content %}
+    <h2 style="font-style: normal">Your Groupings</h2>
+    <br>
+    <div class="explanation">
+        Here are your groupings, and thank you so much for using Thoughtful Randomness! If you wish, you can choose to randomize again based on the same parameters previously indicated, or return to homepage to create entirely different groups via the buttons at the bottom of the page.
+    </div>
+    <br>
+    <div>
+        {% for group in groups %}
+                <h4>Group {{ loop.index }}</h4>
+                <table class="table table-bordered table-striped">
+                    {% for name in group %}
+                    <tr>
+                        <td>{{ name }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            {% endfor %}
+    </div>
+    <br class="small_break">
+    <div>
+        <form name="again" action="/groupings" method="post">
+            <div>
+                <button class="btn btn-primary" id="submit">Randomize Again</button>
+            </div>
+        </form>
+        <br class="small_break">
+        <form name="index" action="/" method="get">
+            <div>
+            <button class="btn btn-primary" id="submit">Return to Homepage</button>
+            </div>
+    </div>
+{% endblock %}

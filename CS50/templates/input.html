@@ -1,0 +1,210 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h3>How many groups would you like to form?</h3>
+<form name="group" action="/input" method="post" required>
+    <br>
+    <div>
+        <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="groups" placeholder="Number of Groups"type="number" min="1" required>
+    </div>
+    <br>
+    <div class="explanation">
+        Now that you have the number of people you wish to group and the number of groups you wish to have, let’s get to inputting! First, in the first column of the table below, enter the names of each person you want to group.
+        <br>
+        <br>
+        After all the names are added, use the drop down in the second and third columns to indicate people, if any, each person wants to or does not want to be grouped with.
+        <br>
+        <br>
+        Once satisfied with all conditions, click on the “Create Groups” button below the table to generate your groups!
+    </div>
+    <br>
+    <h3>People and Preferences</h3>
+    <br>
+    <div>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Names</th>
+                    <th>Groupmate Preferences</th>
+                    <th>Separation Preferences</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for person in range(people) %}
+                    <tr>
+                        <td>
+                            <input autocomplete="off" class="form-control mx-auto w-auto" name="name{{ person }}" type="text" id="name{{ person }}" oninput="updatePreferences(); updateDispreferences()">
+                        </td>
+                        <td>
+                            <div class="accordion" id="accordion1{{ person }}">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ person }}" aria-expanded="true" aria-controls="collapse{{ person }}"></button>
+                                    </h2>
+                                    <div id="collapse{{ person }}" class="accordion-collapse collapse" data-bs-parent="#accordion1{{ person }}">
+                                        <div class="accordion-body form-control mx-auto w-auto" id="preferences{{ person }}" style="overflow: scroll; height: 90px;">
+                                            <!-- Preferences checkboxes to be populated by JavaScript here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="accordion" id="accordion2{{ person }}">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ person }}" aria-expanded="true" aria-controls="collapse{{ person }}"></button>
+                                    </h2>
+                                    <div id="collapse{{ person }}" class="accordion-collapse collapse" data-bs-parent="#accordion2{{ person }}">
+                                        <div class="accordion-body form-control mx-auto w-auto" id="dispreferences{{ person }}" style="overflow: scroll; height: 90px;">
+                                            <!-- Dispreferences checkboxes to be populated by JavaScript here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                {% endfor %}
+
+                <script>
+                    const peopleCount = "{{ people|tojson }}";
+
+                    function updatePreferences() {
+                        // create empty array
+                        let names = [];
+                        for (let i = 0; i < peopleCount; i++) {
+                            let name = document.getElementById(`name${i}`).value;
+                            if (name) {
+                                // put name in array
+                                names.push(name);
+                            }
+                        }
+                        //Sort names alphabetically
+                        names.sort();
+                        // For each person's preferences
+                        for (let i = 0; i < peopleCount; i++) {
+                            let container = document.getElementById(`preferences${i}`);
+                            // Keep previously checked checkboxes
+                            let checkedNames = new Set();
+                            let checkboxes = container.getElementsByTagName('input');
+                            for (let checkbox of checkboxes) {
+                                if (checkbox.checked) {
+                                    checkedNames.add(checkbox.value);
+                                }
+                            }
+                            // Clear all checks
+                            container.innerHTML = '';
+                            // Add new checkboxes if conditions are met
+                            names.forEach((name) => {
+                                // If the name isn't the same name of the person of the row
+                                if (name !== document.getElementById(`name${i}`).value) {
+                                    // First check if name has been checked in dispreferences
+                                    let isCheckedInDispreferences = false;
+                                    let dispreferencesContainer = document.getElementById(`dispreferences${i}`);
+                                    let checkboxes = dispreferencesContainer.getElementsByTagName('input');
+                                    for (let checkbox of checkboxes) {
+                                        if (checkbox.value === name && checkbox.checked) {
+                                            isCheckedInDispreferences = true;
+                                            break;
+                                        }
+                                    }
+                                    // Only add name in preferences if not checked in dispreferences
+                                    if (!isCheckedInDispreferences) {
+                                        // Creat checkbox for that name in preferences
+                                        let checkbox = document.createElement('input');
+                                        checkbox.type = 'checkbox';
+                                        checkbox.name = `preferences${i}`;
+                                        checkbox.value = name;
+                                        checkbox.id = `checkbox${i}_${i}`;
+                                        // When someone checks a preference, make sure they can't also check that name as a dispreference
+                                        checkbox.onchange = updateDispreferences;
+                                        // Reinstate previous checks
+                                        if (checkedNames.has(name)) {
+                                            checkbox.checked = true;
+                                        }
+
+                                        let label = document.createElement('label');
+                                        label.htmlFor = `checkbox${i}_${i}`;
+                                        label.textContent = name;
+                                        label.style.marginLeft = '5px';
+
+                                        container.appendChild(checkbox);
+                                        container.appendChild(label);
+                                        container.appendChild(document.createElement('br'));
+                                    }
+                                }
+                            });
+                        }
+                    }
+                    function updateDispreferences() {
+                        // create empty array
+                        let names = [];
+                        for (let i = 0; i < peopleCount; i++) {
+                            let name = document.getElementById(`name${i}`).value;
+                            if (name) {
+                                // put name in array
+                                names.push(name);
+                            }
+                        }
+                        //Sort names alphabetically
+                        names.sort();
+
+                        for (let i = 0; i < peopleCount; i++) {
+                            let container = document.getElementById(`dispreferences${i}`);
+                            // Keep previously checked checkboxes
+                            let checkedNames = new Set();
+                            let checkboxes = container.getElementsByTagName('input');
+                            for (let checkbox of checkboxes) {
+                                if (checkbox.checked) {
+                                    checkedNames.add(checkbox.value);
+                                }
+                            }
+                            container.innerHTML = '';
+                            names.forEach((name) => {
+                                if (name !== document.getElementById(`name${i}`).value) {
+                                    // First check if name has been checked in preferences
+                                    let isCheckedInPreferences = false;
+                                    let preferencesContainer = document.getElementById(`preferences${i}`);
+                                    let checkboxes = preferencesContainer.getElementsByTagName('input');
+                                    for (let checkbox of checkboxes) {
+                                        if (checkbox.value === name && checkbox.checked) {
+                                            isCheckedInPreferences = true;
+                                            break;
+                                        }
+                                    }
+                                    // Only add name in dispreferences if not checked in preferences
+                                    if (!isCheckedInPreferences) {
+                                        let checkbox = document.createElement('input');
+                                        checkbox.type = 'checkbox';
+                                        checkbox.name = `dispreferences${i}`;
+                                        checkbox.value = name;
+                                        checkbox.id = `checkbox${i}_${i}`;
+                                        // When someone checks a dispreference, make sure they can't also check that name as a preference
+                                        checkbox.onchange = updatePreferences;
+                                        // Reinstate previous checks
+                                        if (checkedNames.has(name)) {
+                                            checkbox.checked = true;
+                                        }
+
+                                        let label = document.createElement('label');
+                                        label.htmlFor = `checkbox${i}_${i}`;
+                                        label.textContent = name;
+                                        label.style.marginLeft = '5px';
+
+                                        container.appendChild(checkbox);
+                                        container.appendChild(label);
+                                        container.appendChild(document.createElement('br'));
+                                    }
+                                }
+                            });
+                        }
+                    }
+                </script>
+            </tbody>
+        </table>
+    </div>
+    <div>
+        <button class="btn btn-primary" id="submit">Create Groups!</button>
+    </div>
+</form>
+{% endblock %}
