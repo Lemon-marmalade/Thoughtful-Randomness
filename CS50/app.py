@@ -3,7 +3,6 @@ import math
 
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
-from waitress import serve
 
 import random
 # Configure application
@@ -32,8 +31,6 @@ def index():
         return render_template("input.html", people=people)
     else:
         return render_template("index.html")
-if __name__ == "__main__":
-    serve(app, host='0.0.0.0', port=5000, url_scheme='https')
 
 @app.route("/input", methods=["GET", "POST"])
 def input():
